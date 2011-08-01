@@ -32,6 +32,9 @@
 "                showmarks_enable (Default: 1)
 "                   Defines whether ShowMarks is enabled by default.
 "                   Example: let g:showmarks_enable=0
+"                showmarks_auto_toggle (Default: 1)
+"                   Whether toggle ShowMarks with CursorHold autocmd.
+"                   Example: let g:showmarks_auto_toggle=0
 "                showmarks_include (Default: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.'`^<>[]{}()\"")
 "                   Defines all marks, in precedence order (only the highest
 "                   precence will show on lines having more than one mark).
@@ -100,6 +103,7 @@ endif
 
 " Options: Set up some nice defaults
 if !exists('g:showmarks_enable'      ) | let g:showmarks_enable       = 1    | endif
+if !exists('g:showmarks_auto_toggle' ) | let g:showmarks_auto_toggle  = 1    | endif
 if !exists('g:showmarks_textlower'   ) | let g:showmarks_textlower    = ">"  | endif
 if !exists('g:showmarks_textupper'   ) | let g:showmarks_textupper    = ">"  | endif
 if !exists('g:showmarks_textother'   ) | let g:showmarks_textother    = ">"  | endif
@@ -131,7 +135,7 @@ noremap <unique> <script> \sm m
 noremap <silent> m :exe 'norm \sm'.nr2char(getchar())<bar>call <sid>ShowMarks()<CR>
 
 " AutoCommands: Only if ShowMarks is enabled
-if g:showmarks_enable == 1
+if g:showmarks_enable == 1 && g:showmarks_auto_toggle
 	aug ShowMarks
 		au!
 		autocmd CursorHold * call s:ShowMarks()
@@ -313,17 +317,21 @@ fun! s:ShowMarksToggle()
 	if g:showmarks_enable == 0
 		let g:showmarks_enable = 1
 		call <sid>ShowMarks()
-		aug ShowMarks
-			au!
-			autocmd CursorHold * call s:ShowMarks()
-		aug END
+		if g:showmarks_auto_toggle
+			aug ShowMarks
+				au!
+				autocmd CursorHold * call s:ShowMarks()
+			aug END
+		endif
 	else
 		let g:showmarks_enable = 0
 		call <sid>ShowMarksHideAll()
-		aug ShowMarks
-			au!
-			autocmd BufEnter * call s:ShowMarksHideAll()
-		aug END
+		if g:showmarks_auto_toggle
+			aug ShowMarks
+				au!
+				autocmd BufEnter * call s:ShowMarksHideAll()
+			aug END
+		endif
 	endif
 endf
 

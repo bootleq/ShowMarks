@@ -13,7 +13,7 @@ ShowMarks hopefully makes life easier by placing a |sign| in the
 leftmost column of the buffer.  The sign indicates the label of the mark and
 its location.
 
-ShowMarks is activated by the |CursorHold| |autocommand| which is triggered
+ShowMarks can be activated by |CursorHold| |autocommand| which is triggered
 every |updatetime| milliseconds.  This is set to 4000(4 seconds) by default.
 If this is too slow, setting it to a lower value will make it more responsive.
 
@@ -50,6 +50,12 @@ behaves:
    will be enabled when Vim starts, setting this to 0 will disable ShowMarks
    by default.
    ShowMarks can be turned back on using the |ShowMarksToggle| command.
+
+                                                      *'showmarks_auto_toggle'*
+'showmarks_auto_toggle'   boolean (default: 1)
+                          global
+   This option define whether ShowMarks should be activated by |CursorHold|
+   autocommand, and deactivated by |BufEnter| autocommand.
 
                                                           *'showmarks_include'*
 'showmarks_include'     string  (default:

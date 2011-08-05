@@ -17,9 +17,6 @@
 "                  <Leader>mh  - Clears a mark.
 "                  <Leader>ma  - Clears all marks.
 "                  <Leader>mm  - Places the next available mark.
-"
-"                Hiding a mark doesn't actually remove it, it simply moves it
-"                to line 1 and hides it visually.
 " ==============================================================================
 
 " Check if we should continue loading
@@ -29,10 +26,11 @@ endif
 let loaded_showmarks = 1
 
 " Bail if Vim isn't compiled with signs support.
-if has( "signs" ) == 0
-	echohl ErrorMsg
-	echo "ShowMarks requires Vim to have +signs support."
-	echohl None
+if v:version < 700
+	echoerr "ShowMarks requires Vim version > 7.0."
+	finish
+elseif has( "signs" ) == 0
+	echoerr "ShowMarks requires Vim to have +signs support."
 	finish
 endif
 
@@ -336,7 +334,6 @@ endf
 
 " Function: ShowMarksClearMark()
 " Description: This function hides the mark at the current line.
-" It simply moves the mark to line 1 and removes the sign.
 " Only marks a-z and A-Z are supported.
 fun! s:ShowMarksClearMark()
 	let ln = line(".")
@@ -348,7 +345,7 @@ fun! s:ShowMarksClearMark()
 			let nm = s:NameOfMark(c)
 			let id = n + (s:maxmarks * winbufnr(0))
 			exe 'sign unplace '.id.' buffer='.winbufnr(0)
-			exe '1 mark '.c
+			execute "delmarks " . c
 			let b:placed_{nm} = 1
 		endif
 		let n = n + 1
@@ -357,7 +354,6 @@ endf
 
 " Function: ShowMarksClearAll()
 " Description: This function clears all marks in the buffer.
-" It simply moves the marks to line 1 and removes the signs.
 " Only marks a-z and A-Z are supported.
 fun! s:ShowMarksClearAll()
 	let n = 0
@@ -368,7 +364,7 @@ fun! s:ShowMarksClearAll()
 			let nm = s:NameOfMark(c)
 			let id = n + (s:maxmarks * winbufnr(0))
 			exe 'sign unplace '.id.' buffer='.winbufnr(0)
-			exe '1 mark '.c
+			execute "delmarks " . c
 			let b:placed_{nm} = 1
 		endif
 		let n = n + 1

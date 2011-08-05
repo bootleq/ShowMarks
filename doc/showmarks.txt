@@ -9,15 +9,15 @@ Marks are useful for jumping back and forth between interesting points in a
 buffer, but can be hard to keep track of without any way to see where you have
 placed them.
 
-ShowMarks hopefully makes life easier by placing a |sign| in the
-leftmost column of the buffer.  The sign indicates the label of the mark and
-its location.
+ShowMarks hopefully makes life easier by placing a |sign| in the leftmost
+column of the buffer. The sign indicates the label of the mark and its
+location.
 
 ShowMarks can be activated by |CursorHold| |autocommand| which is triggered
 every |updatetime| milliseconds.  This is set to 4000(4 seconds) by default.
 If this is too slow, setting it to a lower value will make it more responsive.
 
-Note: This plugin requires Vim 6.x compiled with the |+signs| feature.
+Note: This plugin requires Vim 7.x compiled with the |+signs| feature.
 
 ===============================================================================
 1. Contents                                    *showmarks* *showmarks-contents*
@@ -204,14 +204,12 @@ The following mappings are setup by default:
                                                            *ShowMarksClearMark*
 :ShowMarksClearMark
    This command will clear the mark on the current line.
-   It doesn't actually remove the mark, it simply moves it to line 1 and
-   removes the sign.
+   Only marks in |showmarks_include| are supported.
 
                                                             *ShowMarksClearAll*
 :ShowMarksClearAll
-   This command will clear all marks in the current buffer.
-   It doesn't actually remove the marks, it simply moves them to line 1 and
-   removes the signs.
+   This command will clear all marks in current buffer.
+   Only marks in |showmarks_include| are supported.
 
                                                            *ShowMarksPlaceMark*
 :ShowMarksPlaceMark

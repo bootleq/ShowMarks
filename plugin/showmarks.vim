@@ -255,7 +255,11 @@ endf
 " Function: ShowMarksToggle()
 " Description: This function toggles whether marks are displayed or not.
 fun! s:ShowMarksToggle()
-	if g:showmarks_enable == 0
+	if ! exists('b:showmarks_shown')
+		let b:showmarks_shown = 0
+	endif
+
+	if b:showmarks_shown == 0
 		let g:showmarks_enable = 1
 		call <sid>ShowMarks()
 		if g:showmarks_auto_toggle
@@ -330,6 +334,7 @@ fun! s:ShowMarks()
 		endif
 		let n = n + 1
 	endw
+	let b:showmarks_shown = 1
 endf
 
 " Function: ShowMarksClearMark()
@@ -369,6 +374,7 @@ fun! s:ShowMarksClearAll()
 		endif
 		let n = n + 1
 	endw
+	let b:showmarks_shown = 0
 endf
 
 " Function: ShowMarksHideAll()
@@ -387,6 +393,7 @@ fun! s:ShowMarksHideAll()
 		endif
 		let n = n + 1
 	endw
+	let b:showmarks_shown = 0
 endf
 
 " Function: ShowMarksPlaceMark()

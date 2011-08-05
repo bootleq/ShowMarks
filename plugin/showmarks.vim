@@ -104,6 +104,7 @@ endif
 " Options: Set up some nice defaults
 if !exists('g:showmarks_enable'      ) | let g:showmarks_enable       = 1    | endif
 if !exists('g:showmarks_auto_toggle' ) | let g:showmarks_auto_toggle  = 1    | endif
+if !exists('g:showmarks_no_mappings' ) | let g:showmarks_no_mappings  = 0    | endif
 if !exists('g:showmarks_textlower'   ) | let g:showmarks_textlower    = ">"  | endif
 if !exists('g:showmarks_textupper'   ) | let g:showmarks_textupper    = ">"  | endif
 if !exists('g:showmarks_textother'   ) | let g:showmarks_textother    = ">"  | endif
@@ -125,12 +126,20 @@ com! -nargs=0 ShowMarksClearMark :call <sid>ShowMarksClearMark()
 com! -nargs=0 ShowMarksClearAll  :call <sid>ShowMarksClearAll()
 com! -nargs=0 ShowMarksPlaceMark :call <sid>ShowMarksPlaceMark()
 
-" Mappings (NOTE: Leave the '|'s immediately following the '<cr>' so the mapping does not contain any trailing spaces!)
-if !hasmapto( '<Plug>ShowmarksShowMarksToggle' ) | map <silent> <unique> <leader>mt :ShowMarksToggle<cr>|    endif
-if !hasmapto( '<Plug>ShowmarksShowMarksOn'     ) | map <silent> <unique> <leader>mo :ShowMarksOn<cr>|        endif
-if !hasmapto( '<Plug>ShowmarksClearMark'       ) | map <silent> <unique> <leader>mh :ShowMarksClearMark<cr>| endif
-if !hasmapto( '<Plug>ShowmarksClearAll'        ) | map <silent> <unique> <leader>ma :ShowMarksClearAll<cr>|  endif
-if !hasmapto( '<Plug>ShowmarksPlaceMark'       ) | map <silent> <unique> <leader>mm :ShowMarksPlaceMark<cr>| endif
+" Mappings
+nnoremap <silent> <Plug>ShowMarksToggle    :<C-U>call <SID>ShowMarksToggle()<CR>
+nnoremap <silent> <Plug>ShowMarksOn        :<C-U>call <SID>ShowMarksOn()<CR>
+nnoremap <silent> <Plug>ShowMarksClearMark :<C-U>call <SID>ShowMarksClearMark()<CR>
+nnoremap <silent> <Plug>ShowMarksClearAll  :<C-U>call <SID>ShowMarksClearAll()<CR>
+nnoremap <silent> <Plug>ShowMarksPlaceMark :<C-U>call <SID>ShowMarksPlaceMark()<CR>
+
+if ! g:showmarks_no_mappings
+	silent! nmap <silent> <unique> <leader>mt <Plug>ShowMarksToggle
+	silent! nmap <silent> <unique> <leader>mo <Plug>ShowMarksOn
+	silent! nmap <silent> <unique> <leader>mh <Plug>ShowMarksClearMark
+	silent! nmap <silent> <unique> <leader>ma <Plug>ShowMarksClearAll
+	silent! nmap <silent> <unique> <leader>mm <Plug>ShowMarksPlaceMark
+endif
 nnoremap <silent> <script> <unique> m :call <SID>ShowMarksHooksMark()<CR>
 
 " AutoCommands: Only if ShowMarks is enabled

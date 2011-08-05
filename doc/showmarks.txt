@@ -57,6 +57,22 @@ behaves:
    This option define whether ShowMarks should be activated by |CursorHold|
    autocommand, and deactivated by |BufEnter| autocommand.
 
+                                                      *'showmarks_no_mappings'*
+'showmarks_no_mappings'   boolean (default: 0)
+                          global
+   When g:showmarks_no_mappings is set to 1, no default mappings will be
+   defined. You can set custom mappings instead:
+>
+     nmap mt <Plug>ShowMarksToggle
+     nmap mo <Plug>ShowMarksOn
+     nmap mh <Plug>ShowMarksClearMark
+     nmap ma <Plug>ShowMarksClearAll
+     nmap mm <Plug>ShowMarksPlaceMark
+<
+   In fact there is still a normal mapping on |m| for altering orignal mark
+   command, which doesn't affect by this option. But usually you don't need to
+   take concern with it.
+
                                                           *'showmarks_include'*
 'showmarks_include'     string  (default:
 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.'`^<>[]{}()\"")

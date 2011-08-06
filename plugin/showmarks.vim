@@ -146,6 +146,19 @@ fun! s:NameOfMark(mark)
 	return name
 endf
 
+" Function: LineNumberOf()
+" Paramaters: mark - mark (e.g.: t) to find the line of.
+" Description: Find line number of specified mark in current buffer.
+" Returns: Line number.
+fun! s:LineNumberOf(mark)
+	let pos = getpos("'" . a:mark)
+	if pos[0] && pos[0] != bufnr("%")
+		return 0
+	else
+		return pos[1]
+	endif
+endf
+
 " Function: VerifyText()
 " Paramaters: which - Specifies the variable to verify.
 " Description: Verify the validity of a showmarks_text{upper,lower,other} setup variable.
@@ -307,7 +320,7 @@ fun! s:ShowMarks()
 		let c = strpart(s:IncludeMarks(), n, 1)
 		let nm = s:NameOfMark(c)
 		let id = n + (s:maxmarks * winbufnr(0))
-		let ln = line("'".c)
+		let ln = s:LineNumberOf(c)
 
 		if ln == 0 && (exists('b:placed_'.nm) && b:placed_{nm} != ln)
 			exe 'sign unplace '.id.' buffer='.winbufnr(0)
@@ -346,7 +359,7 @@ fun! s:ShowMarksClearMark()
 	let s:maxmarks = strlen(s:IncludeMarks())
 	while n < s:maxmarks
 		let c = strpart(s:IncludeMarks(), n, 1)
-		if c =~# '[a-zA-Z]' && ln == line("'".c)
+		if c =~# '[a-zA-Z]' && ln == s:LineNumberOf(c)
 			let nm = s:NameOfMark(c)
 			let id = n + (s:maxmarks * winbufnr(0))
 			exe 'sign unplace '.id.' buffer='.winbufnr(0)
@@ -420,7 +433,7 @@ fun! s:ShowMarksPlaceMark()
 	while n < s:maxmarks
 		let c = strpart(s:IncludeMarks(), n, 1)
 		if c =~# '[a-z]'
-			if line("'".c) <= 1
+			if s:LineNumberOf(c) <= 1
 				" Found an unused [a-z] mark; we're done.
 				let next_mark = n
 				break

@@ -3,6 +3,8 @@
                By Anthony Kruize <trandor@labyrinth.net.au>
                   Michael Geddes <michaelrgeddes@optushome.com.au>
 
+               Modified By: bootleq <bootleq@gmail.com>
+
 
 ShowMarks provides a visual representation of |marks| local to a buffer.
 Marks are useful for jumping back and forth between interesting points in a
@@ -190,6 +192,8 @@ The following mappings are setup by default:
 
 (see |mapleader| for how to setup the mapleader variable.)
 
+You can disable these and define custom mappings, see |showmarks_no_mappings|.
+
 ===============================================================================
 5. Commands                                                *showmarks-commands*
 
@@ -220,6 +224,9 @@ The following mappings are setup by default:
 
 ===============================================================================
 6. ChangeLog                                              *showmarks-changelog*
+
+For further changes of this modified version, visit it on github:
+https://github.com/bootleq/ShowMarks
 
 2.2 - 2004-08-17
    Fixed highlighting of the A-Z marks when ignorecase is on. (Mike Kelly)

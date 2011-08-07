@@ -111,7 +111,7 @@ behaves:
 >
      let g:showmarks_ignore_type="hpr"
 <
-                                                      *'showmarks_ignore_name'*
+                                                        *'showmarks_textlower'*
 'showmarks_textlower'   string  (default: ">" )
                         global
    This option defines how the marks a-z will be displayed.

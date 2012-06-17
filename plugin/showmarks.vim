@@ -38,9 +38,6 @@ endif
 if !exists('g:showmarks_enable'      ) | let g:showmarks_enable       = 1    | endif
 if !exists('g:showmarks_auto_toggle' ) | let g:showmarks_auto_toggle  = 1    | endif
 if !exists('g:showmarks_no_mappings' ) | let g:showmarks_no_mappings  = 0    | endif
-if !exists('g:showmarks_textlower'   ) | let g:showmarks_textlower    = ">"  | endif
-if !exists('g:showmarks_textupper'   ) | let g:showmarks_textupper    = ">"  | endif
-if !exists('g:showmarks_textother'   ) | let g:showmarks_textother    = ">"  | endif
 if !exists('g:showmarks_ignore_type' ) | let g:showmarks_ignore_type  = "hq" | endif
 if !exists('g:showmarks_hlline_lower') | let g:showmarks_hlline_lower = "0"  | endif
 if !exists('g:showmarks_hlline_upper') | let g:showmarks_hlline_upper = "0"  | endif
@@ -179,7 +176,7 @@ fun! s:ShowMarksSetup()
 		endif
 		let s:ShowMarksDLink{nm} = 'ShowMarksHL' . mark_type[0]
 
-		let text = printf('%.2s', get(g:, 'showmarks_text' . mark_type, "\t>"))
+		let text = printf('%.2s', get(g:, 'showmarks_text' . mark_type, "\t"))
 		let text = substitute(text, '\v\t|\s', c, '')
 		if get(g:, 'showmarks_hlline_' . mark_type)
 			let lhltext = 'linehl=' . s:ShowMarksDLink{nm} . nm

@@ -112,10 +112,11 @@ behaves:
      let g:showmarks_ignore_type="hpr"
 <
                                                         *'showmarks_textlower'*
-'showmarks_textlower'   string  (default: ">" )
+'showmarks_textlower'   string  (default: not set)
                         global
    This option defines how the marks a-z will be displayed.
    A maximum of two printable characters can be defined, see |E239|.
+   By default, the name of the mark is displayed.
 
    To include the mark itself in the text, use tab(\t) or other unprintable
    character as placeholder.
@@ -123,16 +124,19 @@ behaves:
    (same as "\t<character>"). Specifying two characters will simply display
    those two characters.
 
-   Some examples:
-     To display the mark with a > suffixed: (default) >
+   Examples:
+     To display the mark with suffix as 'm>'
+>
        let g:showmarks_textlower="\t>"
 <         or >
        let g:showmarks_textlower=">"
 <
-     To display the mark with a ( prefixed: >
+     To display the mark with prefix as '(m'
+>
        let g:showmarks_textlower="(\t"
 <
-     To display two > characters: >
+     To display two > characters as '>>'
+>
        let g:showmarks_textlower=">>"
 <
                                                         *'showmarks_textupper'*

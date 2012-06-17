@@ -174,7 +174,7 @@ fun! s:ShowMarksSetup()
 		else " Other signs, like ', ., etc.
 			let mark_type = 'other'
 		endif
-		let s:ShowMarksDLink{nm} = 'ShowMarksHL' . mark_type[0]
+		let s:ShowMarksDLink{nm} = s:TextHLGroup(c)
 
 		let text = printf('%.2s', get(g:, 'showmarks_text' . mark_type, "\t"))
 		let text = substitute(text, '\v\t|\s', c, '')
@@ -183,14 +183,15 @@ fun! s:ShowMarksSetup()
 		endif
 
 		" Define the sign with a unique highlight which will be linked when placed.
-		exe 'sign define ShowMark'.nm.' '.lhltext.' text='.text.' texthl='.s:ShowMarksDLink{nm}.nm
-		let b:ShowMarksLink{nm} = ''
+		execute printf('sign define ShowMarks_%s %s text=%s texthl=%s',
+					\	nm,
+					\	lhltext,
+					\	text,
+					\	'ShowMarksHL' . mark_type[0]
+					\ )
 		let n = n + 1
-	endw
+	endwhile
 endf
-
-" Set things up
-call s:ShowMarksSetup()
 
 " Function: ShowMarksOn
 " Description: Enable showmarks, and show them now.
@@ -259,26 +260,23 @@ fun! s:ShowMarks()
 		let nm = s:NameOfMark(c)
 		let id = n + (s:maxmarks * winbufnr(0))
 		let ln = s:LineNumberOf(c)
+		let mark_name_at_line = get(l:mark_at_line, ln, '')
 
 		if ln == 0 && (exists('b:placed_'.nm) && b:placed_{nm} != ln)
 			exe 'sign unplace '.id.' buffer='.winbufnr(0)
 		elseif ln > 1 || c !~ '[a-zA-Z]'
-			let mark_name_at_line = get(l:mark_at_line, ln, '')
 			if strlen(mark_name_at_line)
 				" Already placed a mark, set the highlight to multiple
-				if c =~ '\a' && b:ShowMarksLink{mark_name_at_line} != 'ShowMarksHLm'
-					let b:ShowMarksLink{mark_name_at_line} = 'ShowMarksHLm'
-					exe 'hi link ' . s:ShowMarksDLink{mark_name_at_line} . mark_name_at_line . ' ' . b:ShowMarksLink{mark_name_at_line}
+				if c =~ '\a'
+					call s:ChangeHighlight(mark_name_at_line, 'ShowMarksHLm')
 				endif
 			else
-				if !exists('b:ShowMarksLink'.nm) || b:ShowMarksLink{nm} != s:ShowMarksDLink{nm}
-					let b:ShowMarksLink{nm} = s:ShowMarksDLink{nm}
-					exe 'hi link '.s:ShowMarksDLink{nm}.nm.' '.b:ShowMarksLink{nm}
-				endif
+				call s:ChangeHighlight(nm, s:TextHLGroup(c))
 				let l:mark_at_line[ln] = nm
+
 				if !exists('b:placed_'.nm) || b:placed_{nm} != ln
 					exe 'sign unplace '.id.' buffer='.winbufnr(0)
-					exe 'sign place '.id.' name=ShowMark'.nm.' line='.ln.' buffer='.winbufnr(0)
+					exe 'sign place '.id.' name=ShowMarks_'.nm.' line='.ln.' buffer='.winbufnr(0)
 					let b:placed_{nm} = ln
 				endif
 			endif
@@ -408,12 +406,41 @@ fun! s:ShowMarksPlaceMark()
 	call <sid>ShowMarks()
 endf
 
+" Function: ChangeHighlight()
+" Description: redefine texthl attribute of mark
+function! s:ChangeHighlight(mark_name, new_texthl)
+	redir => old_def
+	silent! execute printf('sign list ShowMarks_%s', a:mark_name)
+	redir END
+	let old_def = substitute(old_def, '\v.*sign\s+', '', '')
+	let old_texthl = matchstr(old_def, '\vtexthl\=\zs.+\ze$')
+
+	if old_texthl != a:new_texthl
+		execute 'sign define ' . substitute(old_def, '\vtexthl\=\zs.+\ze$', a:new_texthl, '')
+	endif
+endfunction
+
+" Function: TextHLGroup()
+" Description: return proper texthl group name for character
+function! s:TextHLGroup(char)
+	if a:char =~ '\l'
+		return 'ShowMarksHLl'
+	elseif a:char =~ '\u'
+		return 'ShowMarksHLu'
+	else
+		return 'ShowMarksHLo'
+	endif
+endfunction
+
 " Function: ShowMarksHooksMark()
 " Description: Hooks normal m command for calling ShowMarks() with it.
 fun! s:ShowMarksHooksMark()
 	execute 'normal! m' . nr2char(getchar())
 	call <SID>ShowMarks()
 endf
+
+" Set things up
+call s:ShowMarksSetup()
 
 " -----------------------------------------------------------------------------
 " vim:ts=4:sw=4:noet

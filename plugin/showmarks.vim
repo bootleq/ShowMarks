@@ -233,11 +233,11 @@ endf
 " Function: ShowMarks()
 " Description: This function runs through all the marks and displays or
 " removes signs as appropriate. It is called on the CursorHold autocommand.
-" We use the marked_{ln} variables (containing a timestamp) to track what marks
-" we've shown (placed) in this call to ShowMarks; to only actually place the
-" first mark on any particular line -- this forces only the first mark
-" (according to the order of showmarks_include) to be shown (i.e., letters
-" take precedence over marks like paragraph and sentence.)
+" We use the l:mark_at_line variable to track what marks we've shown (placed)
+" in this call to ShowMarks; to only actually place the first mark on any
+" particular line -- this forces only the first mark (according to the order
+" of showmarks_include) to be shown (i.e., letters take precedence over marks
+" like paragraph and sentence.)
 fun! s:ShowMarks()
 	if g:showmarks_enable == 0
 		return
@@ -253,6 +253,7 @@ fun! s:ShowMarks()
 
 	let n = 0
 	let s:maxmarks = strlen(s:IncludeMarks())
+	let l:mark_at_line = {}
 	while n < s:maxmarks
 		let c = strpart(s:IncludeMarks(), n, 1)
 		let nm = s:NameOfMark(c)
@@ -262,19 +263,19 @@ fun! s:ShowMarks()
 		if ln == 0 && (exists('b:placed_'.nm) && b:placed_{nm} != ln)
 			exe 'sign unplace '.id.' buffer='.winbufnr(0)
 		elseif ln > 1 || c !~ '[a-zA-Z]'
-			" Have we already placed a mark here in this call to ShowMarks?
-			if exists('mark_at'.ln)
+			let mark_name_at_line = get(l:mark_at_line, ln, '')
+			if strlen(mark_name_at_line)
 				" Already placed a mark, set the highlight to multiple
-				if c =~# '[a-zA-Z]' && b:ShowMarksLink{mark_at{ln}} != 'ShowMarksHLm'
-					let b:ShowMarksLink{mark_at{ln}} = 'ShowMarksHLm'
-					exe 'hi link '.s:ShowMarksDLink{mark_at{ln}}.mark_at{ln}.' '.b:ShowMarksLink{mark_at{ln}}
+				if c =~ '\a' && b:ShowMarksLink{mark_name_at_line} != 'ShowMarksHLm'
+					let b:ShowMarksLink{mark_name_at_line} = 'ShowMarksHLm'
+					exe 'hi link ' . s:ShowMarksDLink{mark_name_at_line} . mark_name_at_line . ' ' . b:ShowMarksLink{mark_name_at_line}
 				endif
 			else
 				if !exists('b:ShowMarksLink'.nm) || b:ShowMarksLink{nm} != s:ShowMarksDLink{nm}
 					let b:ShowMarksLink{nm} = s:ShowMarksDLink{nm}
 					exe 'hi link '.s:ShowMarksDLink{nm}.nm.' '.b:ShowMarksLink{nm}
 				endif
-				let mark_at{ln} = nm
+				let l:mark_at_line[ln] = nm
 				if !exists('b:placed_'.nm) || b:placed_{nm} != ln
 					exe 'sign unplace '.id.' buffer='.winbufnr(0)
 					exe 'sign place '.id.' name=ShowMark'.nm.' line='.ln.' buffer='.winbufnr(0)
@@ -283,7 +284,7 @@ fun! s:ShowMarks()
 			endif
 		endif
 		let n = n + 1
-	endw
+	endwhile
 	let b:showmarks_shown = 1
 endf
 

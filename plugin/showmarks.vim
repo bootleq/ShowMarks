@@ -155,44 +155,6 @@ fun! s:LineNumberOf(mark)
 	endif
 endf
 
-" Function: ShowMarksSetup()
-" Description: This function sets up the sign definitions for each mark.
-" It uses the showmarks_textlower, showmarks_textupper and showmarks_textother
-" variables to determine how to draw the mark.
-fun! s:ShowMarksSetup()
-	let n = 0
-	let s:maxmarks = strlen(s:all_marks)
-	while n < s:maxmarks
-		let c = strpart(s:all_marks, n, 1)
-		let nm = s:NameOfMark(c)
-		let lhltext = ''
-
-		if c =~# '[a-z]'
-			let mark_type = 'lower'
-		elseif c =~# '[A-Z]'
-			let mark_type = 'upper'
-		else " Other signs, like ', ., etc.
-			let mark_type = 'other'
-		endif
-		let s:ShowMarksDLink{nm} = s:TextHLGroup(c)
-
-		let text = printf('%.2s', get(g:, 'showmarks_text' . mark_type, "\t"))
-		let text = substitute(text, '\v\t|\s', c, '')
-		if get(g:, 'showmarks_hlline_' . mark_type)
-			let lhltext = 'linehl=' . s:ShowMarksDLink{nm} . nm
-		endif
-
-		" Define the sign with a unique highlight which will be linked when placed.
-		execute printf('sign define ShowMarks_%s %s text=%s texthl=%s',
-					\	nm,
-					\	lhltext,
-					\	text,
-					\	'ShowMarksHL' . mark_type[0]
-					\ )
-		let n = n + 1
-	endwhile
-endf
-
 " Function: ShowMarksOn
 " Description: Enable showmarks, and show them now.
 fun! s:ShowMarksOn()
@@ -271,6 +233,7 @@ fun! s:ShowMarks()
 					call s:ChangeHighlight(mark_name_at_line, 'ShowMarksHLm')
 				endif
 			else
+				call s:DefineSign(c)
 				call s:ChangeHighlight(nm, s:TextHLGroup(c))
 				let l:mark_at_line[ln] = nm
 
@@ -406,6 +369,24 @@ fun! s:ShowMarksPlaceMark()
 	call <sid>ShowMarks()
 endf
 
+" Function: DefineSign()
+function! s:DefineSign(mark)
+	let sign_name = 'ShowMarks_' . s:NameOfMark(a:mark)
+	silent! execute 'sign list ' . sign_name
+	if v:errmsg =~ '^E155:' " E155 Unknown sign
+		let mark_type = s:MarkType(a:mark)
+		let text = printf('%.2s', get(g:, 'showmarks_text' . mark_type, "\t"))
+		let text = substitute(text, '\v\t|\s', a:mark, '')
+		let texthl = s:TextHLGroup(a:mark)
+		execute printf('sign define %s %s text=%s texthl=%s',
+					\	sign_name,
+					\	get(g:, 'showmarks_hlline_' . mark_type) ? ' texthl=' . texthl : '',
+					\	text,
+					\	texthl
+					\ )
+	endif
+endfunction
+
 " Function: ChangeHighlight()
 " Description: redefine texthl attribute of mark
 function! s:ChangeHighlight(mark_name, new_texthl)
@@ -420,16 +401,21 @@ function! s:ChangeHighlight(mark_name, new_texthl)
 	endif
 endfunction
 
+" Function: MarkType()
+function! s:MarkType(char)
+	if a:char =~ '\l'
+		return 'lower'
+	elseif a:char =~ '\u'
+		return 'upper'
+	else
+		return 'other'
+	endif
+endfunction
+
 " Function: TextHLGroup()
 " Description: return proper texthl group name for character
 function! s:TextHLGroup(char)
-	if a:char =~ '\l'
-		return 'ShowMarksHLl'
-	elseif a:char =~ '\u'
-		return 'ShowMarksHLu'
-	else
-		return 'ShowMarksHLo'
-	endif
+	return 'ShowMarksHL' . s:MarkType(a:char)[0]
 endfunction
 
 " Function: ShowMarksHooksMark()
@@ -438,9 +424,6 @@ fun! s:ShowMarksHooksMark()
 	execute 'normal! m' . nr2char(getchar())
 	call <SID>ShowMarks()
 endf
-
-" Set things up
-call s:ShowMarksSetup()
 
 " -----------------------------------------------------------------------------
 " vim:ts=4:sw=4:noet

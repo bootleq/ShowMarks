@@ -115,14 +115,16 @@ behaves:
 'showmarks_textlower'   string  (default: ">" )
                         global
    This option defines how the marks a-z will be displayed.
-   A maximum of two characters can be defined.
-   To include the mark in the text use a tab(\t) character. A single
-   character will display as the mark with the character suffixed (same as
-   "\t<character>"). Specifying two characters will simply display those two
-   characters.
+   A maximum of two printable characters can be defined, see |E239|.
+
+   To include the mark itself in the text, use tab(\t) or other unprintable
+   character as placeholder.
+   A single character will display as the mark with the character suffixed
+   (same as "\t<character>"). Specifying two characters will simply display
+   those two characters.
 
    Some examples:
-     To display the mark with a > suffixed: >
+     To display the mark with a > suffixed: (default) >
        let g:showmarks_textlower="\t>"
 <         or >
        let g:showmarks_textlower=">"

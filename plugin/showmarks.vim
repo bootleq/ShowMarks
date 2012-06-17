@@ -158,90 +158,31 @@ fun! s:LineNumberOf(mark)
 	endif
 endf
 
-" Function: VerifyText()
-" Paramaters: which - Specifies the variable to verify.
-" Description: Verify the validity of a showmarks_text{upper,lower,other} setup variable.
-" Default to ">" if it is found to be invalid.
-fun! s:VerifyText(which)
-	if strlen(g:showmarks_text{a:which}) == 0 || strlen(g:showmarks_text{a:which}) > 2
-		echohl ErrorMsg
-		echo "ShowMarks: text".a:which." must contain only 1 or 2 characters."
-		echohl None
-		let g:showmarks_text{a:which}=">"
-	endif
-endf
-
 " Function: ShowMarksSetup()
 " Description: This function sets up the sign definitions for each mark.
 " It uses the showmarks_textlower, showmarks_textupper and showmarks_textother
 " variables to determine how to draw the mark.
 fun! s:ShowMarksSetup()
-	" Make sure the textlower, textupper, and textother options are valid.
-	call s:VerifyText('lower')
-	call s:VerifyText('upper')
-	call s:VerifyText('other')
-
 	let n = 0
 	let s:maxmarks = strlen(s:all_marks)
 	while n < s:maxmarks
 		let c = strpart(s:all_marks, n, 1)
 		let nm = s:NameOfMark(c)
-		let text = '>'.c
 		let lhltext = ''
+
 		if c =~# '[a-z]'
-			if strlen(g:showmarks_textlower) == 1
-				let text=c.g:showmarks_textlower
-			elseif strlen(g:showmarks_textlower) == 2
-				let t1 = strpart(g:showmarks_textlower,0,1)
-				let t2 = strpart(g:showmarks_textlower,1,1)
-				if t1 == "\t"
-					let text=c.t2
-				elseif t2 == "\t"
-					let text=t1.c
-				else
-					let text=g:showmarks_textlower
-				endif
-			endif
-			let s:ShowMarksDLink{nm} = 'ShowMarksHLl'
-			if g:showmarks_hlline_lower == 1
-				let lhltext = 'linehl='.s:ShowMarksDLink{nm}.nm
-			endif
+			let mark_type = 'lower'
 		elseif c =~# '[A-Z]'
-			if strlen(g:showmarks_textupper) == 1
-				let text=c.g:showmarks_textupper
-			elseif strlen(g:showmarks_textupper) == 2
-				let t1 = strpart(g:showmarks_textupper,0,1)
-				let t2 = strpart(g:showmarks_textupper,1,1)
-				if t1 == "\t"
-					let text=c.t2
-				elseif t2 == "\t"
-					let text=t1.c
-				else
-					let text=g:showmarks_textupper
-				endif
-			endif
-			let s:ShowMarksDLink{nm} = 'ShowMarksHLu'
-			if g:showmarks_hlline_upper == 1
-				let lhltext = 'linehl='.s:ShowMarksDLink{nm}.nm
-			endif
+			let mark_type = 'upper'
 		else " Other signs, like ', ., etc.
-			if strlen(g:showmarks_textother) == 1
-				let text=c.g:showmarks_textother
-			elseif strlen(g:showmarks_textother) == 2
-				let t1 = strpart(g:showmarks_textother,0,1)
-				let t2 = strpart(g:showmarks_textother,1,1)
-				if t1 == "\t"
-					let text=c.t2
-				elseif t2 == "\t"
-					let text=t1.c
-				else
-					let text=g:showmarks_textother
-				endif
-			endif
-			let s:ShowMarksDLink{nm} = 'ShowMarksHLo'
-			if g:showmarks_hlline_other == 1
-				let lhltext = 'linehl='.s:ShowMarksDLink{nm}.nm
-			endif
+			let mark_type = 'other'
+		endif
+		let s:ShowMarksDLink{nm} = 'ShowMarksHL' . mark_type[0]
+
+		let text = printf('%.2s', get(g:, 'showmarks_text' . mark_type, "\t>"))
+		let text = substitute(text, '\v\t|\s', c, '')
+		if get(g:, 'showmarks_hlline_' . mark_type)
+			let lhltext = 'linehl=' . s:ShowMarksDLink{nm} . nm
 		endif
 
 		" Define the sign with a unique highlight which will be linked when placed.

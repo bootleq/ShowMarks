@@ -388,6 +388,12 @@ function! s:DefineSign(mark)
 	endif
 endfunction
 
+" Function: SignId()
+function! s:SignId(mark)
+	let included_marks = s:IncludeMarks()
+	return stridx(included_marks, a:mark) + (strlen(included_marks) * winbufnr(0))
+endfunction
+
 " Function: ChangeHighlight()
 " Description: redefine texthl attribute of mark
 function! s:ChangeHighlight(mark_name, new_texthl)

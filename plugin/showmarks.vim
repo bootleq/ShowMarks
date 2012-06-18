@@ -378,12 +378,13 @@ function! s:DefineSign(mark)
 		let text = printf('%.2s', get(g:, 'showmarks_text' . mark_type, "\t"))
 		let text = substitute(text, '\v\t|\s', a:mark, '')
 		let texthl = s:TextHLGroup(a:mark)
-		execute printf('sign define %s %s text=%s texthl=%s',
+		let cmd = printf('sign define %s %s text=%s texthl=%s',
 					\	sign_name,
 					\	get(g:, 'showmarks_hlline_' . mark_type) ? ' texthl=' . texthl : '',
 					\	text,
 					\	texthl
 					\ )
+		execute escape(cmd, '\')
 	endif
 endfunction
 

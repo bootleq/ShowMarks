@@ -76,16 +76,17 @@ behaves:
    take concern with it.
 
                                                           *'showmarks_include'*
-'showmarks_include'     string  (default:
-"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.'`^<>[]{}()\"")
+'showmarks_include'     string  (default: not set)
                         global or local to buffer
    This option specifies which marks will be shown and in which order if
    placed on the same line. Marks earlier in the list take precedence over
    marks later in the list.
+
+   If not set, the default value is >
+   abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.'`^<>[]{}()"
+<
    This option can also be specified as a buffer option which will override
    the global version.
-
-   NOTE: When including the " mark, it must be escaped with a \.
 
    For example to only include marks 'abcdefzxABHJio', in that order:
 >

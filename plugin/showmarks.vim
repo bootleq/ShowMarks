@@ -90,39 +90,16 @@ hi default ShowMarksHLm ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guib
 " show in this buffer.  Each buffer, if not already set, inherits the global
 " setting; if the global include marks have not been set; that is set to the
 " default value.
-fun! s:IncludeMarks()
-	if exists('b:showmarks_include') && exists('b:showmarks_previous_include') && b:showmarks_include != b:showmarks_previous_include
-		" The user changed the marks to include; hide all marks; change the
-		" included mark list, then show all marks.  Prevent infinite
-		" recursion during this switch.
-		if exists('s:use_previous_include')
-			" Recursive call from ShowMarksHideAll()
-			return b:showmarks_previous_include
-		elseif exists('s:use_new_include')
-			" Recursive call from ShowMarks()
-			return b:showmarks_include
-		else
-			let s:use_previous_include = 1
-			call <sid>ShowMarksHideAll()
-			unlet s:use_previous_include
-			let s:use_new_include = 1
-			call <sid>ShowMarks()
-			unlet s:use_new_include
-		endif
+function! s:IncludeMarks()
+	let key = 'showmarks_include'
+	let marks = get(b:, key, get(g:, key, s:all_marks))
+	if get(b:, 'showmarks_previous_include', '') != marks
+		let b:showmarks_previous_include = marks
+		call s:ShowMarksHideAll()
+		call s:ShowMarks()
 	endif
-
-	if !exists('g:showmarks_include')
-		let g:showmarks_include = s:all_marks
-	endif
-	if !exists('b:showmarks_include')
-		let b:showmarks_include = g:showmarks_include
-	endif
-
-	" Save this include setting so we can detect if it was changed.
-	let b:showmarks_previous_include = b:showmarks_include
-
-	return b:showmarks_include
-endf
+	return marks
+endfunction
 
 " Function: LineNumberOf()
 " Paramaters: mark - mark (e.g.: t) to find the line of.

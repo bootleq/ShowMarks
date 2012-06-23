@@ -137,7 +137,7 @@ endf
 fun! s:NameOfMark(mark)
 	let name = a:mark
 	if a:mark =~# '\W'
-		let name = stridx(s:all_marks, a:mark) + 10
+		let name = stridx(s:all_marks, a:mark) + 10 . ''
 	endif
 	return name
 endf

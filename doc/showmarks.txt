@@ -141,13 +141,13 @@ behaves:
        let g:showmarks_textlower=">>"
 <
                                                         *'showmarks_textupper'*
-'showmarks_textupper'   string  (default: ">")
+'showmarks_textupper'   string  (default: not set)
                         global
    This option defines how the marks A-Z will be displayed. It behaves the same
    as the |'showmarks_textlower'| option.
 
                                                         *'showmarks_textother'*
-'showmarks_textother'   string  (default: ">")
+'showmarks_textother'   string  (default: not set)
                         global
    This option defines how all other marks will be displayed. It behaves the
    same as the |'showmarks_textlower'| option.

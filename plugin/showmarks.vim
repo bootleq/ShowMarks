@@ -124,24 +124,6 @@ fun! s:IncludeMarks()
 	return b:showmarks_include
 endf
 
-" Function: NameOfMark()
-" Paramaters: mark - Specifies the mark to find the name of.
-" Description: Convert marks that cannot be used as part of a variable name to
-" something that can be. i.e. We cannot use [ as a variable-name suffix (as
-" in 'placed_['; this function will return something like 63, so the variable
-" will be something like 'placed_63').
-" 10 is added to the mark's index to avoid colliding with the numeric marks
-" 0-9 (since a non-word mark could be listed in showmarks_include in the
-" first 10 characters if the user overrides the default).
-" Returns: The name of the requested mark.
-fun! s:NameOfMark(mark)
-	let name = a:mark
-	if a:mark =~# '\W'
-		let name = stridx(s:all_marks, a:mark) + 10 . ''
-	endif
-	return name
-endf
-
 " Function: LineNumberOf()
 " Paramaters: mark - mark (e.g.: t) to find the line of.
 " Description: Find line number of specified mark in current buffer.
@@ -219,7 +201,6 @@ fun! s:ShowMarks()
 	let l:mark_at_line = {}
 	while n < s:maxmarks
 		let c = strpart(s:IncludeMarks(), n, 1)
-		let nm = s:NameOfMark(c)
 		let id = n + (s:maxmarks * winbufnr(0))
 		let ln = s:LineNumberOf(c)
 		let mark_name_at_line = get(l:mark_at_line, ln, '')
@@ -232,8 +213,8 @@ fun! s:ShowMarks()
 				endif
 			else
 				call s:DefineSign(c)
-				call s:ChangeHighlight(nm, s:TextHLGroup(c))
-				let l:mark_at_line[ln] = nm
+				call s:ChangeHighlight(c, s:TextHLGroup(c))
+				let l:mark_at_line[ln] = c
 				call s:PlaceSign(c)
 			endif
 		endif
@@ -258,7 +239,6 @@ fun! s:ShowMarksClearMark()
 	while n < s:maxmarks
 		let c = strpart(s:IncludeMarks(), n, 1)
 		if c =~# '[a-zA-Z]' && ln == s:LineNumberOf(c)
-			let nm = s:NameOfMark(c)
 			let id = n + (s:maxmarks * winbufnr(0))
 			exe 'sign unplace '.id.' buffer='.winbufnr(0)
 			execute "delmarks " . c
@@ -276,7 +256,6 @@ fun! s:ShowMarksClearAll()
 	while n < s:maxmarks
 		let c = strpart(s:IncludeMarks(), n, 1)
 		if c =~# '[a-zA-Z]'
-			let nm = s:NameOfMark(c)
 			let id = n + (s:maxmarks * winbufnr(0))
 			exe 'sign unplace '.id.' buffer='.winbufnr(0)
 			execute "delmarks " . c
@@ -359,7 +338,7 @@ endf
 
 " Function: DefineSign()
 function! s:DefineSign(mark)
-	let sign_name = 'ShowMarks_' . s:NameOfMark(a:mark)
+	let sign_name = 'ShowMarks_' . a:mark
 	silent! execute 'sign list ' . sign_name
 	if v:errmsg =~ '^E155:' " E155 Unknown sign
 		let mark_type = s:MarkType(a:mark)
@@ -390,7 +369,7 @@ function! s:SignPlacementInfo()
 	redir END
 	let info = []
 	let obj = {}
-	let pattern = escape('\v\s+line=(\d+)\s+id=(\d+)\s+name=(\w+)', '=')
+	let pattern = escape('\v\s+line=(\d+)\s+id=(\d+)\s+name=(\p+)', '=')
 	for item in map(split(msg, '\n'), 'matchlist(v:val, ''' . pattern . ''')[1:3]')
 		if len(item) > 0
 			let [obj.line, obj.id, obj.name] = item
@@ -403,7 +382,6 @@ endfunction
 " Function: PlaceSign()
 function! s:PlaceSign(mark)
 	let sign_id     = s:SignId(a:mark)
-	let mark_name   = s:NameOfMark(a:mark)
 	let line_number = s:LineNumberOf(a:mark)
 	execute printf('sign unplace %s buffer=%s',
 				\	sign_id,
@@ -411,7 +389,7 @@ function! s:PlaceSign(mark)
 				\ )
 	execute printf('sign place %s name=ShowMarks_%s line=%s buffer=%s',
 				\	sign_id,
-				\	mark_name,
+				\	a:mark,
 				\	line_number,
 				\	winbufnr(0)
 				\ )

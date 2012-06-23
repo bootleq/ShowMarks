@@ -224,9 +224,7 @@ fun! s:ShowMarks()
 		let ln = s:LineNumberOf(c)
 		let mark_name_at_line = get(l:mark_at_line, ln, '')
 
-		if ln == 0 && (exists('b:placed_'.nm) && b:placed_{nm} != ln)
-			exe 'sign unplace '.id.' buffer='.winbufnr(0)
-		elseif ln > 1 || c !~ '[a-zA-Z]'
+		if ln > 0
 			if strlen(mark_name_at_line)
 				" Already placed a mark, set the highlight to multiple
 				if c =~ '\a'
@@ -241,6 +239,12 @@ fun! s:ShowMarks()
 		endif
 		let n = n + 1
 	endwhile
+
+	" TODO rewrite clearly
+	for placed in filter(s:SignPlacementInfo(), 'index(values(l:mark_at_line), substitute(v:val["name"], "ShowMarks_", "", "")) == -1')
+		execute 'sign unplace ' . placed.id . ' buffer=' . winbufnr(0)
+	endfor
+
 	let b:showmarks_shown = 1
 endf
 
@@ -258,7 +262,6 @@ fun! s:ShowMarksClearMark()
 			let id = n + (s:maxmarks * winbufnr(0))
 			exe 'sign unplace '.id.' buffer='.winbufnr(0)
 			execute "delmarks " . c
-			let b:placed_{nm} = 1
 		endif
 		let n = n + 1
 	endw
@@ -277,7 +280,6 @@ fun! s:ShowMarksClearAll()
 			let id = n + (s:maxmarks * winbufnr(0))
 			exe 'sign unplace '.id.' buffer='.winbufnr(0)
 			execute "delmarks " . c
-			let b:placed_{nm} = 1
 		endif
 		let n = n + 1
 	endw
@@ -288,18 +290,9 @@ endf
 " Description: This function hides all marks in the buffer.
 " It simply removes the signs.
 fun! s:ShowMarksHideAll()
-	let n = 0
-	let s:maxmarks = strlen(s:IncludeMarks())
-	while n < s:maxmarks
-		let c = strpart(s:IncludeMarks(), n, 1)
-		let nm = s:NameOfMark(c)
-		if exists('b:placed_'.nm)
-			let id = n + (s:maxmarks * winbufnr(0))
-			exe 'sign unplace '.id.' buffer='.winbufnr(0)
-			unlet b:placed_{nm}
-		endif
-		let n = n + 1
-	endw
+	for placed in s:SignPlacementInfo()
+		execute 'sign unplace ' . placed.id . ' buffer=' . winbufnr(0)
+	endfor
 	let b:showmarks_shown = 0
 endf
 
@@ -389,24 +382,39 @@ function! s:SignId(mark)
 	return stridx(included_marks, a:mark) + (strlen(included_marks) * winbufnr(0))
 endfunction
 
+" Function: SignPlacementInfo()
+" Description: get list of placed sign info {'id': n, 'line': n, 'name': s} in current buffer
+function! s:SignPlacementInfo()
+	redir => msg
+	silent! execute printf('sign place buffer=%s', winbufnr(0))
+	redir END
+	let info = []
+	let obj = {}
+	let pattern = escape('\v\s+line=(\d+)\s+id=(\d+)\s+name=(\w+)', '=')
+	for item in map(split(msg, '\n'), 'matchlist(v:val, ''' . pattern . ''')[1:3]')
+		if len(item) > 0
+			let [obj.line, obj.id, obj.name] = item
+			call add(info, copy(obj))
+		endif
+	endfor
+	return info
+endfunction
+
 " Function: PlaceSign()
 function! s:PlaceSign(mark)
 	let sign_id     = s:SignId(a:mark)
 	let mark_name   = s:NameOfMark(a:mark)
 	let line_number = s:LineNumberOf(a:mark)
-	if !exists('b:placed_' . mark_name) || b:placed_{mark_name} != line_number
-		execute printf('sign unplace %s buffer=%s',
-					\	sign_id,
-					\	winbufnr(0)
-					\ )
-		execute printf('sign place %s name=ShowMarks_%s line=%s buffer=%s',
-					\	sign_id,
-					\	mark_name,
-					\	line_number,
-					\	winbufnr(0)
-					\ )
-		let b:placed_{mark_name} = line_number
-	endif
+	execute printf('sign unplace %s buffer=%s',
+				\	sign_id,
+				\	winbufnr(0)
+				\ )
+	execute printf('sign place %s name=ShowMarks_%s line=%s buffer=%s',
+				\	sign_id,
+				\	mark_name,
+				\	line_number,
+				\	winbufnr(0)
+				\ )
 endfunction
 
 " Function: ChangeHighlight()

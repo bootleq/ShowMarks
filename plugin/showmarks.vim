@@ -1,5 +1,5 @@
 " ==============================================================================
-" Name:          ShowMarks
+" Name:          ShowMarks (modified version by bootleq)
 " Description:   Visually displays the location of marks.
 " Authors:       Anthony Kruize <trandor@labyrinth.net.au>
 "                Michael Geddes <michaelrgeddes@optushome.com.au>
@@ -38,9 +38,6 @@ endif
 if !exists('g:showmarks_enable'      ) | let g:showmarks_enable       = 1    | endif
 if !exists('g:showmarks_auto_toggle' ) | let g:showmarks_auto_toggle  = 1    | endif
 if !exists('g:showmarks_no_mappings' ) | let g:showmarks_no_mappings  = 0    | endif
-if !exists('g:showmarks_textlower'   ) | let g:showmarks_textlower    = ">"  | endif
-if !exists('g:showmarks_textupper'   ) | let g:showmarks_textupper    = ">"  | endif
-if !exists('g:showmarks_textother'   ) | let g:showmarks_textother    = ">"  | endif
 if !exists('g:showmarks_ignore_type' ) | let g:showmarks_ignore_type  = "hq" | endif
 if !exists('g:showmarks_hlline_lower') | let g:showmarks_hlline_lower = "0"  | endif
 if !exists('g:showmarks_hlline_upper') | let g:showmarks_hlline_upper = "0"  | endif
@@ -93,57 +90,16 @@ hi default ShowMarksHLm ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guib
 " show in this buffer.  Each buffer, if not already set, inherits the global
 " setting; if the global include marks have not been set; that is set to the
 " default value.
-fun! s:IncludeMarks()
-	if exists('b:showmarks_include') && exists('b:showmarks_previous_include') && b:showmarks_include != b:showmarks_previous_include
-		" The user changed the marks to include; hide all marks; change the
-		" included mark list, then show all marks.  Prevent infinite
-		" recursion during this switch.
-		if exists('s:use_previous_include')
-			" Recursive call from ShowMarksHideAll()
-			return b:showmarks_previous_include
-		elseif exists('s:use_new_include')
-			" Recursive call from ShowMarks()
-			return b:showmarks_include
-		else
-			let s:use_previous_include = 1
-			call <sid>ShowMarksHideAll()
-			unlet s:use_previous_include
-			let s:use_new_include = 1
-			call <sid>ShowMarks()
-			unlet s:use_new_include
-		endif
+function! s:IncludeMarks()
+	let key = 'showmarks_include'
+	let marks = get(b:, key, get(g:, key, s:all_marks))
+	if get(b:, 'showmarks_previous_include', '') != marks
+		let b:showmarks_previous_include = marks
+		call s:ShowMarksHideAll()
+		call s:ShowMarks()
 	endif
-
-	if !exists('g:showmarks_include')
-		let g:showmarks_include = s:all_marks
-	endif
-	if !exists('b:showmarks_include')
-		let b:showmarks_include = g:showmarks_include
-	endif
-
-	" Save this include setting so we can detect if it was changed.
-	let b:showmarks_previous_include = b:showmarks_include
-
-	return b:showmarks_include
-endf
-
-" Function: NameOfMark()
-" Paramaters: mark - Specifies the mark to find the name of.
-" Description: Convert marks that cannot be used as part of a variable name to
-" something that can be. i.e. We cannot use [ as a variable-name suffix (as
-" in 'placed_['; this function will return something like 63, so the variable
-" will be something like 'placed_63').
-" 10 is added to the mark's index to avoid colliding with the numeric marks
-" 0-9 (since a non-word mark could be listed in showmarks_include in the
-" first 10 characters if the user overrides the default).
-" Returns: The name of the requested mark.
-fun! s:NameOfMark(mark)
-	let name = a:mark
-	if a:mark =~# '\W'
-		let name = stridx(s:all_marks, a:mark) + 10
-	endif
-	return name
-endf
+	return marks
+endfunction
 
 " Function: LineNumberOf()
 " Paramaters: mark - mark (e.g.: t) to find the line of.
@@ -157,102 +113,6 @@ fun! s:LineNumberOf(mark)
 		return pos[1]
 	endif
 endf
-
-" Function: VerifyText()
-" Paramaters: which - Specifies the variable to verify.
-" Description: Verify the validity of a showmarks_text{upper,lower,other} setup variable.
-" Default to ">" if it is found to be invalid.
-fun! s:VerifyText(which)
-	if strlen(g:showmarks_text{a:which}) == 0 || strlen(g:showmarks_text{a:which}) > 2
-		echohl ErrorMsg
-		echo "ShowMarks: text".a:which." must contain only 1 or 2 characters."
-		echohl None
-		let g:showmarks_text{a:which}=">"
-	endif
-endf
-
-" Function: ShowMarksSetup()
-" Description: This function sets up the sign definitions for each mark.
-" It uses the showmarks_textlower, showmarks_textupper and showmarks_textother
-" variables to determine how to draw the mark.
-fun! s:ShowMarksSetup()
-	" Make sure the textlower, textupper, and textother options are valid.
-	call s:VerifyText('lower')
-	call s:VerifyText('upper')
-	call s:VerifyText('other')
-
-	let n = 0
-	let s:maxmarks = strlen(s:all_marks)
-	while n < s:maxmarks
-		let c = strpart(s:all_marks, n, 1)
-		let nm = s:NameOfMark(c)
-		let text = '>'.c
-		let lhltext = ''
-		if c =~# '[a-z]'
-			if strlen(g:showmarks_textlower) == 1
-				let text=c.g:showmarks_textlower
-			elseif strlen(g:showmarks_textlower) == 2
-				let t1 = strpart(g:showmarks_textlower,0,1)
-				let t2 = strpart(g:showmarks_textlower,1,1)
-				if t1 == "\t"
-					let text=c.t2
-				elseif t2 == "\t"
-					let text=t1.c
-				else
-					let text=g:showmarks_textlower
-				endif
-			endif
-			let s:ShowMarksDLink{nm} = 'ShowMarksHLl'
-			if g:showmarks_hlline_lower == 1
-				let lhltext = 'linehl='.s:ShowMarksDLink{nm}.nm
-			endif
-		elseif c =~# '[A-Z]'
-			if strlen(g:showmarks_textupper) == 1
-				let text=c.g:showmarks_textupper
-			elseif strlen(g:showmarks_textupper) == 2
-				let t1 = strpart(g:showmarks_textupper,0,1)
-				let t2 = strpart(g:showmarks_textupper,1,1)
-				if t1 == "\t"
-					let text=c.t2
-				elseif t2 == "\t"
-					let text=t1.c
-				else
-					let text=g:showmarks_textupper
-				endif
-			endif
-			let s:ShowMarksDLink{nm} = 'ShowMarksHLu'
-			if g:showmarks_hlline_upper == 1
-				let lhltext = 'linehl='.s:ShowMarksDLink{nm}.nm
-			endif
-		else " Other signs, like ', ., etc.
-			if strlen(g:showmarks_textother) == 1
-				let text=c.g:showmarks_textother
-			elseif strlen(g:showmarks_textother) == 2
-				let t1 = strpart(g:showmarks_textother,0,1)
-				let t2 = strpart(g:showmarks_textother,1,1)
-				if t1 == "\t"
-					let text=c.t2
-				elseif t2 == "\t"
-					let text=t1.c
-				else
-					let text=g:showmarks_textother
-				endif
-			endif
-			let s:ShowMarksDLink{nm} = 'ShowMarksHLo'
-			if g:showmarks_hlline_other == 1
-				let lhltext = 'linehl='.s:ShowMarksDLink{nm}.nm
-			endif
-		endif
-
-		" Define the sign with a unique highlight which will be linked when placed.
-		exe 'sign define ShowMark'.nm.' '.lhltext.' text='.text.' texthl='.s:ShowMarksDLink{nm}.nm
-		let b:ShowMarksLink{nm} = ''
-		let n = n + 1
-	endw
-endf
-
-" Set things up
-call s:ShowMarksSetup()
 
 " Function: ShowMarksOn
 " Description: Enable showmarks, and show them now.
@@ -295,11 +155,11 @@ endf
 " Function: ShowMarks()
 " Description: This function runs through all the marks and displays or
 " removes signs as appropriate. It is called on the CursorHold autocommand.
-" We use the marked_{ln} variables (containing a timestamp) to track what marks
-" we've shown (placed) in this call to ShowMarks; to only actually place the
-" first mark on any particular line -- this forces only the first mark
-" (according to the order of showmarks_include) to be shown (i.e., letters
-" take precedence over marks like paragraph and sentence.)
+" We use the l:mark_at_line variable to track what marks we've shown (placed)
+" in this call to ShowMarks; to only actually place the first mark on any
+" particular line -- this forces only the first mark (according to the order
+" of showmarks_include) to be shown (i.e., letters take precedence over marks
+" like paragraph and sentence.)
 fun! s:ShowMarks()
 	if g:showmarks_enable == 0
 		return
@@ -313,39 +173,41 @@ fun! s:ShowMarks()
 		return
 	endif
 
-	let n = 0
-	let s:maxmarks = strlen(s:IncludeMarks())
-	while n < s:maxmarks
-		let c = strpart(s:IncludeMarks(), n, 1)
-		let nm = s:NameOfMark(c)
-		let id = n + (s:maxmarks * winbufnr(0))
-		let ln = s:LineNumberOf(c)
+	let config_marks = s:IncludeMarks()
+	redir => msg
+	silent! execute 'marks ' . config_marks
+	redir END
+	let listed_marks = map(split(msg, '\n')[1:-1], escape('matchstr(v:val, "\S")', '\'))
+	let marks = []
+	for c in listed_marks + ['(', ')', '{', '}']
+		if stridx(config_marks, c) > -1
+			call add(marks, c)
+		endif
+	endfor
+	let l:mark_at_line = {}
 
-		if ln == 0 && (exists('b:placed_'.nm) && b:placed_{nm} != ln)
-			exe 'sign unplace '.id.' buffer='.winbufnr(0)
-		elseif ln > 1 || c !~ '[a-zA-Z]'
-			" Have we already placed a mark here in this call to ShowMarks?
-			if exists('mark_at'.ln)
-				" Already placed a mark, set the highlight to multiple
-				if c =~# '[a-zA-Z]' && b:ShowMarksLink{mark_at{ln}} != 'ShowMarksHLm'
-					let b:ShowMarksLink{mark_at{ln}} = 'ShowMarksHLm'
-					exe 'hi link '.s:ShowMarksDLink{mark_at{ln}}.mark_at{ln}.' '.b:ShowMarksLink{mark_at{ln}}
+	for c in marks
+		let line = s:LineNumberOf(c)
+		if line > 0
+			let placed_mark = get(l:mark_at_line, line, '')
+			if strlen(placed_mark)
+				if c =~ '\a'
+					call s:ChangeHighlight(placed_mark, 'ShowMarksHLm')
 				endif
 			else
-				if !exists('b:ShowMarksLink'.nm) || b:ShowMarksLink{nm} != s:ShowMarksDLink{nm}
-					let b:ShowMarksLink{nm} = s:ShowMarksDLink{nm}
-					exe 'hi link '.s:ShowMarksDLink{nm}.nm.' '.b:ShowMarksLink{nm}
-				endif
-				let mark_at{ln} = nm
-				if !exists('b:placed_'.nm) || b:placed_{nm} != ln
-					exe 'sign unplace '.id.' buffer='.winbufnr(0)
-					exe 'sign place '.id.' name=ShowMark'.nm.' line='.ln.' buffer='.winbufnr(0)
-					let b:placed_{nm} = ln
-				endif
+				call s:DefineSign(c)
+				call s:ChangeHighlight(c, s:TextHLGroup(c))
+				let l:mark_at_line[line] = c
+				call s:PlaceSign(c)
 			endif
 		endif
-		let n = n + 1
-	endw
+	endfor
+
+	" TODO rewrite clearly
+	for placed in filter(s:SignPlacementInfo(), 'index(values(l:mark_at_line), substitute(v:val["name"], "ShowMarks_", "", "")) == -1')
+		execute 'sign unplace ' . placed.id . ' buffer=' . winbufnr(0)
+	endfor
+
 	let b:showmarks_shown = 1
 endf
 
@@ -359,11 +221,9 @@ fun! s:ShowMarksClearMark()
 	while n < s:maxmarks
 		let c = strpart(s:IncludeMarks(), n, 1)
 		if c =~# '[a-zA-Z]' && ln == s:LineNumberOf(c)
-			let nm = s:NameOfMark(c)
 			let id = n + (s:maxmarks * winbufnr(0))
 			exe 'sign unplace '.id.' buffer='.winbufnr(0)
 			execute "delmarks " . c
-			let b:placed_{nm} = 1
 		endif
 		let n = n + 1
 	endw
@@ -378,11 +238,9 @@ fun! s:ShowMarksClearAll()
 	while n < s:maxmarks
 		let c = strpart(s:IncludeMarks(), n, 1)
 		if c =~# '[a-zA-Z]'
-			let nm = s:NameOfMark(c)
 			let id = n + (s:maxmarks * winbufnr(0))
 			exe 'sign unplace '.id.' buffer='.winbufnr(0)
 			execute "delmarks " . c
-			let b:placed_{nm} = 1
 		endif
 		let n = n + 1
 	endw
@@ -393,18 +251,9 @@ endf
 " Description: This function hides all marks in the buffer.
 " It simply removes the signs.
 fun! s:ShowMarksHideAll()
-	let n = 0
-	let s:maxmarks = strlen(s:IncludeMarks())
-	while n < s:maxmarks
-		let c = strpart(s:IncludeMarks(), n, 1)
-		let nm = s:NameOfMark(c)
-		if exists('b:placed_'.nm)
-			let id = n + (s:maxmarks * winbufnr(0))
-			exe 'sign unplace '.id.' buffer='.winbufnr(0)
-			unlet b:placed_{nm}
-		endif
-		let n = n + 1
-	endw
+	for placed in s:SignPlacementInfo()
+		execute 'sign unplace ' . placed.id . ' buffer=' . winbufnr(0)
+	endfor
 	let b:showmarks_shown = 0
 endf
 
@@ -468,6 +317,96 @@ fun! s:ShowMarksPlaceMark()
 	exe 'mark '.c
 	call <sid>ShowMarks()
 endf
+
+" Function: DefineSign()
+function! s:DefineSign(mark)
+	let sign_name = 'ShowMarks_' . a:mark
+	silent! execute 'sign list ' . sign_name
+	if v:errmsg =~ '^E155:' " E155 Unknown sign
+		let mark_type = s:MarkType(a:mark)
+		let text = printf('%.2s', get(g:, 'showmarks_text' . mark_type, "\t"))
+		let text = substitute(text, '\v\t|\s', a:mark, '')
+		let texthl = s:TextHLGroup(a:mark)
+		let cmd = printf('sign define %s %s text=%s texthl=%s',
+					\	sign_name,
+					\	get(g:, 'showmarks_hlline_' . mark_type) ? ' texthl=' . texthl : '',
+					\	text,
+					\	texthl
+					\ )
+		execute escape(cmd, '\')
+	endif
+endfunction
+
+" Function: SignId()
+function! s:SignId(mark)
+	let included_marks = s:IncludeMarks()
+	return stridx(included_marks, a:mark) + (strlen(included_marks) * winbufnr(0))
+endfunction
+
+" Function: SignPlacementInfo()
+" Description: get list of placed sign info {'id': n, 'line': n, 'name': s} in current buffer
+function! s:SignPlacementInfo()
+	redir => msg
+	silent! execute printf('sign place buffer=%s', winbufnr(0))
+	redir END
+	let info = []
+	let obj = {}
+	let pattern = escape('\v\s+line=(\d+)\s+id=(\d+)\s+name=(\p+)', '=')
+	for item in map(split(msg, '\n'), 'matchlist(v:val, ''' . pattern . ''')[1:3]')
+		if len(item) > 0
+			let [obj.line, obj.id, obj.name] = item
+			call add(info, copy(obj))
+		endif
+	endfor
+	return info
+endfunction
+
+" Function: PlaceSign()
+function! s:PlaceSign(mark)
+	let sign_id     = s:SignId(a:mark)
+	let line_number = s:LineNumberOf(a:mark)
+	execute printf('sign unplace %s buffer=%s',
+				\	sign_id,
+				\	winbufnr(0)
+				\ )
+	execute printf('sign place %s name=ShowMarks_%s line=%s buffer=%s',
+				\	sign_id,
+				\	a:mark,
+				\	line_number,
+				\	winbufnr(0)
+				\ )
+endfunction
+
+" Function: ChangeHighlight()
+" Description: redefine texthl attribute of mark
+function! s:ChangeHighlight(mark_name, new_texthl)
+	redir => old_def
+	silent! execute printf('sign list ShowMarks_%s', a:mark_name)
+	redir END
+	let old_def = substitute(old_def, '\v.*sign\s+', '', '')
+	let old_texthl = matchstr(old_def, '\vtexthl\=\zs.+\ze$')
+
+	if old_texthl != a:new_texthl
+		execute 'sign define ' . substitute(old_def, '\vtexthl\=\zs.+\ze$', a:new_texthl, '')
+	endif
+endfunction
+
+" Function: MarkType()
+function! s:MarkType(char)
+	if a:char =~ '\l'
+		return 'lower'
+	elseif a:char =~ '\u'
+		return 'upper'
+	else
+		return 'other'
+	endif
+endfunction
+
+" Function: TextHLGroup()
+" Description: return proper texthl group name for character
+function! s:TextHLGroup(char)
+	return 'ShowMarksHL' . s:MarkType(a:char)[0]
+endfunction
 
 " Function: ShowMarksHooksMark()
 " Description: Hooks normal m command for calling ShowMarks() with it.

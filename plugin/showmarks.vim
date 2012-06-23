@@ -1,5 +1,5 @@
 " ==============================================================================
-" Name:          ShowMarks
+" Name:          ShowMarks (modified version by bootleq)
 " Description:   Visually displays the location of marks.
 " Authors:       Anthony Kruize <trandor@labyrinth.net.au>
 "                Michael Geddes <michaelrgeddes@optushome.com.au>

@@ -173,30 +173,35 @@ fun! s:ShowMarks()
 		return
 	endif
 
-	let n = 0
-	let s:maxmarks = strlen(s:IncludeMarks())
+	let config_marks = s:IncludeMarks()
+	redir => msg
+	silent! execute 'marks ' . config_marks
+	redir END
+	let listed_marks = map(split(msg, '\n')[1:-1], escape('matchstr(v:val, "\S")', '\'))
+	let marks = []
+	for c in listed_marks + ['(', ')', '{', '}']
+		if stridx(config_marks, c) > -1
+			call add(marks, c)
+		endif
+	endfor
 	let l:mark_at_line = {}
-	while n < s:maxmarks
-		let c = strpart(s:IncludeMarks(), n, 1)
-		let id = n + (s:maxmarks * winbufnr(0))
-		let ln = s:LineNumberOf(c)
-		let mark_name_at_line = get(l:mark_at_line, ln, '')
 
-		if ln > 0
-			if strlen(mark_name_at_line)
-				" Already placed a mark, set the highlight to multiple
+	for c in marks
+		let line = s:LineNumberOf(c)
+		if line > 0
+			let placed_mark = get(l:mark_at_line, line, '')
+			if strlen(placed_mark)
 				if c =~ '\a'
-					call s:ChangeHighlight(mark_name_at_line, 'ShowMarksHLm')
+					call s:ChangeHighlight(placed_mark, 'ShowMarksHLm')
 				endif
 			else
 				call s:DefineSign(c)
 				call s:ChangeHighlight(c, s:TextHLGroup(c))
-				let l:mark_at_line[ln] = c
+				let l:mark_at_line[line] = c
 				call s:PlaceSign(c)
 			endif
 		endif
-		let n = n + 1
-	endwhile
+	endfor
 
 	" TODO rewrite clearly
 	for placed in filter(s:SignPlacementInfo(), 'index(values(l:mark_at_line), substitute(v:val["name"], "ShowMarks_", "", "")) == -1')

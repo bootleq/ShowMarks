@@ -236,12 +236,7 @@ fun! s:ShowMarks()
 				call s:DefineSign(c)
 				call s:ChangeHighlight(nm, s:TextHLGroup(c))
 				let l:mark_at_line[ln] = nm
-
-				if !exists('b:placed_'.nm) || b:placed_{nm} != ln
-					exe 'sign unplace '.id.' buffer='.winbufnr(0)
-					exe 'sign place '.id.' name=ShowMarks_'.nm.' line='.ln.' buffer='.winbufnr(0)
-					let b:placed_{nm} = ln
-				endif
+				call s:PlaceSign(c)
 			endif
 		endif
 		let n = n + 1
@@ -392,6 +387,26 @@ endfunction
 function! s:SignId(mark)
 	let included_marks = s:IncludeMarks()
 	return stridx(included_marks, a:mark) + (strlen(included_marks) * winbufnr(0))
+endfunction
+
+" Function: PlaceSign()
+function! s:PlaceSign(mark)
+	let sign_id     = s:SignId(a:mark)
+	let mark_name   = s:NameOfMark(a:mark)
+	let line_number = s:LineNumberOf(a:mark)
+	if !exists('b:placed_' . mark_name) || b:placed_{mark_name} != line_number
+		execute printf('sign unplace %s buffer=%s',
+					\	sign_id,
+					\	winbufnr(0)
+					\ )
+		execute printf('sign place %s name=ShowMarks_%s line=%s buffer=%s',
+					\	sign_id,
+					\	mark_name,
+					\	line_number,
+					\	winbufnr(0)
+					\ )
+		let b:placed_{mark_name} = line_number
+	endif
 endfunction
 
 " Function: ChangeHighlight()

@@ -44,11 +44,11 @@ if !exists('g:showmarks_hlline_upper') | let g:showmarks_hlline_upper = "0"  | e
 if !exists('g:showmarks_hlline_other') | let g:showmarks_hlline_other = "0"  | endif
 
 " Commands
-com! -nargs=0 ShowMarksToggle    :call showmarks#ShowMarksToggle()
-com! -nargs=0 ShowMarksOn        :call showmarks#ShowMarksOn()
-com! -nargs=0 ShowMarksClearMark :call showmarks#ShowMarksClearMark()
-com! -nargs=0 ShowMarksClearAll  :call showmarks#ShowMarksClearAll()
-com! -nargs=0 ShowMarksPlaceMark :call showmarks#ShowMarksPlaceMark()
+command! -nargs=0 ShowMarksToggle    :call showmarks#ShowMarksToggle()
+command! -nargs=0 ShowMarksOn        :call showmarks#ShowMarksOn()
+command! -nargs=0 ShowMarksClearMark :call showmarks#ShowMarksClearMark()
+command! -nargs=0 ShowMarksClearAll  :call showmarks#ShowMarksClearAll()
+command! -nargs=0 ShowMarksPlaceMark :call showmarks#ShowMarksPlaceMark()
 
 " Mappings
 nnoremap <silent> <Plug>ShowMarksToggle    :<C-U>call showmarks#ShowMarksToggle()<CR>
@@ -68,17 +68,17 @@ nnoremap <silent> <script> <unique> m :call showmarks#ShowMarksHooksMark()<CR>
 
 " AutoCommands: Only if ShowMarks is enabled
 if g:showmarks_enable == 1 && g:showmarks_auto_toggle
-	aug ShowMarks
-		au!
+	augroup ShowMarks
+		autocmd!
 		autocmd CursorHold * call showmarks#ShowMarks()
-	aug END
+	augroup END
 endif
 
 " Highlighting: Setup some nice colours to show the mark positions.
-hi default ShowMarksHLl ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold
-hi default ShowMarksHLu ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold
-hi default ShowMarksHLo ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold
-hi default ShowMarksHLm ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold
+highlight default ShowMarksHLl ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold
+highlight default ShowMarksHLu ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold
+highlight default ShowMarksHLo ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold
+highlight default ShowMarksHLm ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold
 
 
 " -----------------------------------------------------------------------------

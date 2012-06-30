@@ -6,17 +6,17 @@ let s:all_marks = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012345678
 
 " Function: ShowMarksOn
 " Description: Enable showmarks, and show them now.
-fun! showmarks#ShowMarksOn()
+function! showmarks#ShowMarksOn()
 	if g:showmarks_enable == 0
 		call showmarks#ShowMarksToggle()
 	else
 		call showmarks#ShowMarks()
 	endif
-endf
+endfunction
 
 " Function: ShowMarksToggle()
 " Description: This function toggles whether marks are displayed or not.
-fun! showmarks#ShowMarksToggle()
+function! showmarks#ShowMarksToggle()
 	if ! exists('b:showmarks_shown')
 		let b:showmarks_shown = 0
 	endif
@@ -25,22 +25,22 @@ fun! showmarks#ShowMarksToggle()
 		let g:showmarks_enable = 1
 		call showmarks#ShowMarks()
 		if g:showmarks_auto_toggle
-			aug ShowMarks
-				au!
+			augroup ShowMarks
+				autocmd!
 				autocmd CursorHold * call showmarks#ShowMarks()
-			aug END
+			augroup END
 		endif
 	else
 		let g:showmarks_enable = 0
 		call s:ShowMarksHideAll()
 		if g:showmarks_auto_toggle
-			aug ShowMarks
-				au!
+			augroup ShowMarks
+				autocmd!
 				autocmd BufEnter * call s:ShowMarksHideAll()
-			aug END
+			augroup END
 		endif
 	endif
-endf
+endfunction
 
 " Function: ShowMarks()
 " Description: This function runs through all the marks and displays or
@@ -50,7 +50,7 @@ endf
 " particular line -- this forces only the first mark (according to the order
 " of showmarks_include) to be shown (i.e., letters take precedence over marks
 " like paragraph and sentence.)
-fun! showmarks#ShowMarks()
+function! showmarks#ShowMarks()
 	if g:showmarks_enable == 0
 		return
 	endif
@@ -99,12 +99,12 @@ fun! showmarks#ShowMarks()
 	endfor
 
 	let b:showmarks_shown = 1
-endf
+endfunction
 
 " Function: ShowMarksClearMark()
 " Description: This function hides the mark at the current line.
 " Only marks a-z and A-Z are supported.
-fun! showmarks#ShowMarksClearMark()
+function! showmarks#ShowMarksClearMark()
 	let ln = line(".")
 	let n = 0
 	let s:maxmarks = strlen(s:IncludeMarks())
@@ -112,30 +112,30 @@ fun! showmarks#ShowMarksClearMark()
 		let c = strpart(s:IncludeMarks(), n, 1)
 		if c =~# '[a-zA-Z]' && ln == s:LineNumberOf(c)
 			let id = n + (s:maxmarks * winbufnr(0))
-			exe 'sign unplace '.id.' buffer='.winbufnr(0)
+			execute 'sign unplace '.id.' buffer='.winbufnr(0)
 			execute "delmarks " . c
 		endif
 		let n = n + 1
-	endw
-endf
+	endwhile
+endfunction
 
 " Function: ShowMarksClearAll()
 " Description: This function clears all marks in the buffer.
 " Only marks a-z and A-Z are supported.
-fun! showmarks#ShowMarksClearAll()
+function! showmarks#ShowMarksClearAll()
 	let n = 0
 	let s:maxmarks = strlen(s:IncludeMarks())
 	while n < s:maxmarks
 		let c = strpart(s:IncludeMarks(), n, 1)
 		if c =~# '[a-zA-Z]'
 			let id = n + (s:maxmarks * winbufnr(0))
-			exe 'sign unplace '.id.' buffer='.winbufnr(0)
+			execute 'sign unplace '.id.' buffer='.winbufnr(0)
 			execute "delmarks " . c
 		endif
 		let n = n + 1
-	endw
+	endwhile
 	let b:showmarks_shown = 0
-endf
+endfunction
 
 " Function: ShowMarksPlaceMark()
 " Description: This function will place the next unplaced mark (in priority
@@ -143,7 +143,7 @@ endf
 " of marks so the user doesn't have to remember which marks are placed or not.
 " Hidden marks are considered to be unplaced.
 " Only marks a-z are supported.
-fun! showmarks#ShowMarksPlaceMark()
+function! showmarks#ShowMarksPlaceMark()
 	" Find the first, next, and last [a-z] mark in showmarks_include (i.e.
 	" priority order), so we know where to "wrap".
 	let first_alpha_mark = -1
@@ -176,7 +176,7 @@ fun! showmarks#ShowMarksPlaceMark()
 			endif
 		endif
 		let n = n + 1
-	endw
+	endwhile
 
 	if next_mark == -1 && (b:previous_auto_mark == -1 || b:previous_auto_mark == last_alpha_mark)
 		" Didn't find an unused mark, and haven't placed any auto-chosen marks yet,
@@ -194,16 +194,16 @@ fun! showmarks#ShowMarksPlaceMark()
 
 	let c = strpart(s:IncludeMarks(), next_mark, 1)
 	let b:previous_auto_mark = next_mark
-	exe 'mark '.c
+	execute 'mark '.c
 	call showmarks#ShowMarks()
-endf
+endfunction
 
 " Function: ShowMarksHooksMark()
 " Description: Hooks normal m command for calling ShowMarks() with it.
-fun! showmarks#ShowMarksHooksMark()
+function! showmarks#ShowMarksHooksMark()
 	execute 'normal! m' . nr2char(getchar())
 	call showmarks#ShowMarks()
-endf
+endfunction
 
 
 " Function: IncludeMarks()
@@ -226,24 +226,24 @@ endfunction
 " Paramaters: mark - mark (e.g.: t) to find the line of.
 " Description: Find line number of specified mark in current buffer.
 " Returns: Line number.
-fun! s:LineNumberOf(mark)
+function! s:LineNumberOf(mark)
 	let pos = getpos("'" . a:mark)
 	if pos[0] && pos[0] != bufnr("%")
 		return 0
 	else
 		return pos[1]
 	endif
-endf
+endfunction
 
 " Function: ShowMarksHideAll()
 " Description: This function hides all marks in the buffer.
 " It simply removes the signs.
-fun! s:ShowMarksHideAll()
+function! s:ShowMarksHideAll()
 	for placed in s:SignPlacementInfo()
 		execute 'sign unplace ' . placed.id . ' buffer=' . winbufnr(0)
 	endfor
 	let b:showmarks_shown = 0
-endf
+endfunction
 
 " Function: DefineSign()
 function! s:DefineSign(mark)

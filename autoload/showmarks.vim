@@ -3,34 +3,6 @@
 " of marks to show -- it can be changed on-the-fly).
 let s:all_marks = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.'`^<>[]{}()\""
 
-" Function: IncludeMarks()
-" Description: This function returns the list of marks (in priority order) to
-" show in this buffer.  Each buffer, if not already set, inherits the global
-" setting; if the global include marks have not been set; that is set to the
-" default value.
-function! s:IncludeMarks()
-	let key = 'showmarks_include'
-	let marks = get(b:, key, get(g:, key, s:all_marks))
-	if get(b:, 'showmarks_previous_include', '') != marks
-		let b:showmarks_previous_include = marks
-		call s:ShowMarksHideAll()
-		call showmarks#ShowMarks()
-	endif
-	return marks
-endfunction
-
-" Function: LineNumberOf()
-" Paramaters: mark - mark (e.g.: t) to find the line of.
-" Description: Find line number of specified mark in current buffer.
-" Returns: Line number.
-fun! s:LineNumberOf(mark)
-	let pos = getpos("'" . a:mark)
-	if pos[0] && pos[0] != bufnr("%")
-		return 0
-	else
-		return pos[1]
-	endif
-endf
 
 " Function: ShowMarksOn
 " Description: Enable showmarks, and show them now.
@@ -165,16 +137,6 @@ fun! showmarks#ShowMarksClearAll()
 	let b:showmarks_shown = 0
 endf
 
-" Function: ShowMarksHideAll()
-" Description: This function hides all marks in the buffer.
-" It simply removes the signs.
-fun! s:ShowMarksHideAll()
-	for placed in s:SignPlacementInfo()
-		execute 'sign unplace ' . placed.id . ' buffer=' . winbufnr(0)
-	endfor
-	let b:showmarks_shown = 0
-endf
-
 " Function: ShowMarksPlaceMark()
 " Description: This function will place the next unplaced mark (in priority
 " order) to the current location. The idea here is to automate the placement
@@ -234,6 +196,53 @@ fun! showmarks#ShowMarksPlaceMark()
 	let b:previous_auto_mark = next_mark
 	exe 'mark '.c
 	call showmarks#ShowMarks()
+endf
+
+" Function: ShowMarksHooksMark()
+" Description: Hooks normal m command for calling ShowMarks() with it.
+fun! showmarks#ShowMarksHooksMark()
+	execute 'normal! m' . nr2char(getchar())
+	call showmarks#ShowMarks()
+endf
+
+
+" Function: IncludeMarks()
+" Description: This function returns the list of marks (in priority order) to
+" show in this buffer.  Each buffer, if not already set, inherits the global
+" setting; if the global include marks have not been set; that is set to the
+" default value.
+function! s:IncludeMarks()
+	let key = 'showmarks_include'
+	let marks = get(b:, key, get(g:, key, s:all_marks))
+	if get(b:, 'showmarks_previous_include', '') != marks
+		let b:showmarks_previous_include = marks
+		call s:ShowMarksHideAll()
+		call showmarks#ShowMarks()
+	endif
+	return marks
+endfunction
+
+" Function: LineNumberOf()
+" Paramaters: mark - mark (e.g.: t) to find the line of.
+" Description: Find line number of specified mark in current buffer.
+" Returns: Line number.
+fun! s:LineNumberOf(mark)
+	let pos = getpos("'" . a:mark)
+	if pos[0] && pos[0] != bufnr("%")
+		return 0
+	else
+		return pos[1]
+	endif
+endf
+
+" Function: ShowMarksHideAll()
+" Description: This function hides all marks in the buffer.
+" It simply removes the signs.
+fun! s:ShowMarksHideAll()
+	for placed in s:SignPlacementInfo()
+		execute 'sign unplace ' . placed.id . ' buffer=' . winbufnr(0)
+	endfor
+	let b:showmarks_shown = 0
 endf
 
 " Function: DefineSign()
@@ -325,13 +334,6 @@ endfunction
 function! s:TextHLGroup(char)
 	return 'ShowMarksHL' . s:MarkType(a:char)[0]
 endfunction
-
-" Function: ShowMarksHooksMark()
-" Description: Hooks normal m command for calling ShowMarks() with it.
-fun! showmarks#ShowMarksHooksMark()
-	execute 'normal! m' . nr2char(getchar())
-	call showmarks#ShowMarks()
-endf
 
 
 " -----------------------------------------------------------------------------

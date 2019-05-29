@@ -271,22 +271,29 @@ function! s:SignId(mark)
 endfunction
 
 " Function: SignPlacementInfo()
-" Description: get list of placed sign info {'id': n, 'line': n, 'name': s} in current buffer
-function! s:SignPlacementInfo()
-	redir => msg
-	silent! execute printf('sign place buffer=%s', winbufnr(0))
-	redir END
-	let info = []
-	let obj = {}
-	let pattern = escape('\v\s+line=(\d+)\s+id=(\d+)\s+name=(\p+)', '=')
-	for item in map(split(msg, '\n'), 'matchlist(v:val, ''' . pattern . ''')[1:3]')
-		if len(item) > 0
-			let [obj.line, obj.id, obj.name] = item
-			call add(info, copy(obj))
-		endif
-	endfor
-	return info
-endfunction
+" Description: get list of placed sign info {'id': n, 'line': n, 'name': s} (and others, see |sign_getplaced|), in current buffer
+if exists('*sign_getplaced')
+	function! s:SignPlacementInfo()
+		let signs = sign_getplaced(winbufnr(0))[0].signs
+		return map(signs, {_, o -> extend(o, {'line': o.lnum})})
+	endfunction
+else
+	function! s:SignPlacementInfo()
+		redir => msg
+		silent! execute printf('sign place buffer=%s', winbufnr(0))
+		redir END
+		let info = []
+		let obj = {}
+		let pattern = escape('\v\s+line=(\d+)\s+id=(\d+)\s+name=(\p+)', '=')
+		for item in map(split(msg, '\n'), 'matchlist(v:val, ''' . pattern . ''')[1:3]')
+			if len(item) > 0
+				let [obj.line, obj.id, obj.name] = item
+				call add(info, copy(obj))
+			endif
+		endfor
+		return info
+	endfunction
+endif
 
 " Function: PlaceSign()
 function! s:PlaceSign(mark)

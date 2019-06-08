@@ -167,6 +167,12 @@ behaves:
    This option defines whether the entire line other marks are on will be
    highlighted.
 
+'showmarks_enable_unfocused' boolean (default: 1)        *'showmarks_enable_unfocused'*
+                        global
+   This option defines whether buffers other than the current buffer would
+   have marks on them. By setting this value to 0, only the current focused
+   buffer would show it's marks.
+
 ===============================================================================
 3. Highlighting                                        *showmarks-highlighting*
 

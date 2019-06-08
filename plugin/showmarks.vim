@@ -42,10 +42,12 @@ if !exists('g:showmarks_ignore_type' ) | let g:showmarks_ignore_type  = "hq" | e
 if !exists('g:showmarks_hlline_lower') | let g:showmarks_hlline_lower = "0"  | endif
 if !exists('g:showmarks_hlline_upper') | let g:showmarks_hlline_upper = "0"  | endif
 if !exists('g:showmarks_hlline_other') | let g:showmarks_hlline_other = "0"  | endif
+if !exists('g:showmarks_enable_unfocused') | let g:showmarks_enable_unfocused = 1  | endif
 
 " Commands
 command! -nargs=0 ShowMarksToggle    :call showmarks#ShowMarksToggle()
 command! -nargs=0 ShowMarksOn        :call showmarks#ShowMarksOn()
+command! -nargs=0 ShowMarksOff       :call showmarks#ShowMarksOff()
 command! -nargs=0 ShowMarksClearMark :call showmarks#ShowMarksClearMark()
 command! -nargs=0 ShowMarksClearAll  :call showmarks#ShowMarksClearAll()
 command! -nargs=0 ShowMarksPlaceMark :call showmarks#ShowMarksPlaceMark()
@@ -80,6 +82,13 @@ highlight default ShowMarksHLu ctermfg=darkblue ctermbg=blue cterm=bold guifg=bl
 highlight default ShowMarksHLo ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold
 highlight default ShowMarksHLm ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold
 
+if ! g:showmarks_enable_unfocused
+	augroup ShowMarksUnfocused
+		autocmd!
+		autocmd BufEnter,FocusGained * call showmarks#ShowMarks()
+		autocmd BufLeave,FocusLost   * call showmarks#ShowMarksHideAll()
+	augroup END
+endif
 
 " -----------------------------------------------------------------------------
 " vim:ts=4:sw=4:noet

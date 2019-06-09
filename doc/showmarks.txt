@@ -54,10 +54,15 @@ behaves:
    ShowMarks can be turned back on using the |ShowMarksToggle| command.
 
                                                       *'showmarks_auto_toggle'*
-'showmarks_auto_toggle'   boolean (default: 1)
+'showmarks_auto_toggle'   Number (default: 1)
                           global
-   This option define whether ShowMarks should be activated by |CursorHold|
-   autocommand, and deactivated by |BufEnter| autocommand.
+   This option define when the showmarks would be shown and updated.
+    - 0 : activated and updated only by user command.
+    - 1 : activated and updated by |CursorHold| autocommand, and deactivated
+          by |BufEnter| autocommand.
+    - 2 : activated and updated by |CursorHold| autocommand, and deactivated
+          by |BufEnter| autocommand, but work only for the current buffer,
+          not being set on unfocused buffers.
 
                                                       *'showmarks_no_mappings'*
 'showmarks_no_mappings'   boolean (default: 0)
@@ -166,12 +171,6 @@ behaves:
                         global
    This option defines whether the entire line other marks are on will be
    highlighted.
-
-'showmarks_enable_unfocused' boolean (default: 1)        *'showmarks_enable_unfocused'*
-                        global
-   This option defines whether buffers other than the current buffer would
-   have marks on them. By setting this value to 0, only the current focused
-   buffer would show it's marks.
 
 ===============================================================================
 3. Highlighting                                        *showmarks-highlighting*

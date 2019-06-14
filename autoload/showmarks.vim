@@ -24,7 +24,14 @@ function! showmarks#ShowMarksToggle()
 	if b:showmarks_shown == 0
 		let g:showmarks_enable = 1
 		call showmarks#ShowMarks()
-		if g:showmarks_auto_toggle
+		if index(g:showmarks_auto_toggle, 'current_buffer') >= 0
+			augroup ShowMarksCurrentBuffer
+				autocmd!
+				autocmd BufEnter * call showmarks#ShowMarks()
+				autocmd BufLeave * call showmarks#ShowMarksHideAll()
+			augroup END
+		endif
+		if index(g:showmarks_auto_toggle, 'cursor_hold') >= 0
 			augroup ShowMarks
 				autocmd!
 				autocmd CursorHold * call showmarks#ShowMarks()
@@ -32,11 +39,17 @@ function! showmarks#ShowMarksToggle()
 		endif
 	else
 		let g:showmarks_enable = 0
-		call s:ShowMarksHideAll()
-		if g:showmarks_auto_toggle
+		call showmarks#ShowMarksHideAll()
+		if index(g:showmarks_auto_toggle, 'current_buffer') >= 0
+			" Remove the current buffer autocmd in case the plugin is disabled.
+			augroup ShowMarksCurrentBuffer
+				autocmd!
+			augroup END
+		endif
+		if index(g:showmarks_auto_toggle, 'cursor_hold') >= 0
 			augroup ShowMarks
 				autocmd!
-				autocmd BufEnter * call s:ShowMarksHideAll()
+				autocmd BufEnter * call showmarks#ShowMarksHideAll()
 			augroup END
 		endif
 	endif
@@ -205,6 +218,16 @@ function! showmarks#ShowMarksHooksMark()
 	call showmarks#ShowMarks()
 endfunction
 
+" Function: ShowMarksHideAll()
+" Description: This function hides all marks in the buffer.
+" It simply removes the signs.
+function! showmarks#ShowMarksHideAll()
+	for placed in s:SignPlacementInfo()
+		execute 'sign unplace ' . placed.id . ' buffer=' . winbufnr(0)
+	endfor
+	let b:showmarks_shown = 0
+endfunction
+
 
 " Function: IncludeMarks()
 " Description: This function returns the list of marks (in priority order) to
@@ -216,7 +239,7 @@ function! s:IncludeMarks()
 	let marks = get(b:, key, get(g:, key, s:all_marks))
 	if get(b:, 'showmarks_previous_include', '') != marks
 		let b:showmarks_previous_include = marks
-		call s:ShowMarksHideAll()
+		call showmarks#ShowMarksHideAll()
 		call showmarks#ShowMarks()
 	endif
 	return marks
@@ -233,16 +256,6 @@ function! s:LineNumberOf(mark)
 	else
 		return pos[1]
 	endif
-endfunction
-
-" Function: ShowMarksHideAll()
-" Description: This function hides all marks in the buffer.
-" It simply removes the signs.
-function! s:ShowMarksHideAll()
-	for placed in s:SignPlacementInfo()
-		execute 'sign unplace ' . placed.id . ' buffer=' . winbufnr(0)
-	endfor
-	let b:showmarks_shown = 0
 endfunction
 
 " Function: DefineSign()

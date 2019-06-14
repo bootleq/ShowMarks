@@ -36,12 +36,24 @@ endif
 
 " Options: Set up some nice defaults
 if !exists('g:showmarks_enable'      ) | let g:showmarks_enable       = 1    | endif
-if !exists('g:showmarks_auto_toggle' ) | let g:showmarks_auto_toggle  = 1    | endif
 if !exists('g:showmarks_no_mappings' ) | let g:showmarks_no_mappings  = 0    | endif
 if !exists('g:showmarks_ignore_type' ) | let g:showmarks_ignore_type  = "hq" | endif
 if !exists('g:showmarks_hlline_lower') | let g:showmarks_hlline_lower = "0"  | endif
 if !exists('g:showmarks_hlline_upper') | let g:showmarks_hlline_upper = "0"  | endif
 if !exists('g:showmarks_hlline_other') | let g:showmarks_hlline_other = "0"  | endif
+
+" The value of showmarks_auto_toggle was changed to be a list. For backward
+" compatibility reasons, the code still supports it as a number or as a string.
+if !exists('g:showmarks_auto_toggle' ) | let g:showmarks_auto_toggle  = ['cursor_hold'] | endif
+if type(g:showmarks_auto_toggle) == type(0)
+	if g:showmarks_auto_toggle == 1
+		let g:showmarks_auto_toggle = ['cursor_hold']
+	else
+		let g:showmarks_auto_toggle = []
+	endif
+elseif type(g:showmarks_auto_toggle) == type('')
+	let g:showmarks_auto_toggle = [g:showmarks_auto_toggle]
+endif
 
 " Commands
 command! -nargs=0 ShowMarksToggle    :call showmarks#ShowMarksToggle()
@@ -67,7 +79,7 @@ endif
 nnoremap <silent> <script> <unique> m :call showmarks#ShowMarksHooksMark()<CR>
 
 " AutoCommands: Only if ShowMarks is enabled
-if g:showmarks_enable == 1 && g:showmarks_auto_toggle
+if g:showmarks_enable == 1 && index(g:showmarks_auto_toggle, 'cursor_hold') >= 0
 	augroup ShowMarks
 		autocmd!
 		autocmd CursorHold * call showmarks#ShowMarks()
@@ -80,6 +92,13 @@ highlight default ShowMarksHLu ctermfg=darkblue ctermbg=blue cterm=bold guifg=bl
 highlight default ShowMarksHLo ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold
 highlight default ShowMarksHLm ctermfg=darkblue ctermbg=blue cterm=bold guifg=blue guibg=lightblue gui=bold
 
+if g:showmarks_enable == 1 && index(g:showmarks_auto_toggle, 'current_buffer') >= 0
+	augroup ShowMarksCurrentBuffer
+		autocmd!
+		autocmd BufEnter * call showmarks#ShowMarks()
+		autocmd BufLeave * call showmarks#ShowMarksHideAll()
+	augroup END
+endif
 
 " -----------------------------------------------------------------------------
 " vim:ts=4:sw=4:noet

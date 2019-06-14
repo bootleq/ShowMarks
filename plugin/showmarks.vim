@@ -3,8 +3,7 @@
 " Description:   Visually displays the location of marks.
 " Authors:       Anthony Kruize <trandor@labyrinth.net.au>
 "                Michael Geddes <michaelrgeddes@optushome.com.au>
-" Version:       2.2
-" Modified:      17 August 2004
+" Version:       2.3.0
 " License:       Released into the public domain.
 " ChangeLog:     See :help showmarks-changelog
 "

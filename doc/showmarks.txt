@@ -54,15 +54,24 @@ behaves:
    ShowMarks can be turned back on using the |ShowMarksToggle| command.
 
                                                       *'showmarks_auto_toggle'*
-'showmarks_auto_toggle'   Number (default: 1)
+'showmarks_auto_toggle'   List (default: ['cursor_hold'])
                           global
-   This option define when the showmarks would be shown and updated.
-    - 0 : activated and updated only by user command.
-    - 1 : activated and updated by |CursorHold| autocommand, and deactivated
-          by |BufEnter| autocommand.
-    - 2 : activated and updated by |CursorHold| autocommand, and deactivated
-          by |BufEnter| autocommand, but work only for the current buffer,
-          not being set on unfocused buffers.
+   This option define if the marks would be shown and updated automatically.
+    - []               : The marks won't be updated or shown automatically
+                         at all.
+    - 'cursor_hold'    : The marks will be shown and updated when the
+                         CursorHold event happens.
+    - 'current_buffer' : The marks would be shown only for the current
+                         buffer.
+
+   Those values can be used together. E.g., setting the value to
+   ['cursor_hold', 'current_buffer'] would mean that the value would be
+   updated automatically, but will be shown only on the current buffer.
+
+   For backward compatibility, this value support also number variables. In
+   case it would be 0 it would turn into [] and in case it would be 1 it
+   would be turned into ['cursor_hold']. However, it is advised to use this
+   variable as a list.
 
                                                       *'showmarks_no_mappings'*
 'showmarks_no_mappings'   boolean (default: 0)

@@ -22,7 +22,7 @@ Also provide commands for these functions.
 Configuration
 =============
 
-  - `let g:showmarks_auto_toggle = 0`  
+  - `let g:showmarks_auto_toggle = []`  
     Don't open ShowMarks with CursorHold autocommand.
   - `let g:showmarks_no_mappings = 1`  
     Disable default key mappings.

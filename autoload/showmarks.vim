@@ -24,7 +24,14 @@ function! showmarks#ShowMarksToggle()
 	if b:showmarks_shown == 0
 		let g:showmarks_enable = 1
 		call showmarks#ShowMarks()
-		if g:showmarks_auto_toggle
+		if index(g:showmarks_auto_toggle, 'current_buffer') >= 0
+			augroup ShowMarksCurrentBuffer
+				autocmd!
+				autocmd BufEnter * call showmarks#ShowMarks()
+				autocmd BufLeave * call showmarks#ShowMarksHideAll()
+			augroup END
+		endif
+		if index(g:showmarks_auto_toggle, 'cursor_hold') >= 0
 			augroup ShowMarks
 				autocmd!
 				autocmd CursorHold * call showmarks#ShowMarks()
@@ -33,7 +40,13 @@ function! showmarks#ShowMarksToggle()
 	else
 		let g:showmarks_enable = 0
 		call showmarks#ShowMarksHideAll()
-		if g:showmarks_auto_toggle
+		if index(g:showmarks_auto_toggle, 'current_buffer') >= 0
+			" Remove the current buffer autocmd in case the plugin is disabled.
+			augroup ShowMarksCurrentBuffer
+				autocmd!
+			augroup END
+		endif
+		if index(g:showmarks_auto_toggle, 'cursor_hold') >= 0
 			augroup ShowMarks
 				autocmd!
 				autocmd BufEnter * call showmarks#ShowMarksHideAll()
